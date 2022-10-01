@@ -77,11 +77,11 @@ void adc_task();
 void octave_task();
 long map(long x, long in_min, long in_max, long out_min, long out_max);
 
-#define FLASH_TARGET_OFFSET (512 * 1024) // choosing to start at 512K
+#define FLASH_TARGET_OFFSET (512 * 1024) // choosing to start at 256k
 
-uint8_t myData[1];
+uint8_t myData[FLASH_PAGE_SIZE];
 
-uint8_t myDataSize = sizeof(myData[1]);
+uint8_t myDataSize = sizeof(myData[FLASH_PAGE_SIZE]);
 
 int main()
 {
@@ -101,9 +101,14 @@ int main()
     }
 
     // get midicannel from flash
+    for (int i = 0; i < FLASH_PAGE_SIZE; ++i)
+    {
+        myData[i] = change_channel;
+    }
+
     const uint8_t* flash_target_contents = (const uint8_t *) (XIP_BASE + FLASH_TARGET_OFFSET);
-    myData[1] = printf(flash_target_contents, FLASH_PAGE_SIZE);
-    if ( myData[1] < 1 || myData[1] > 16 )
+    printf(flash_target_contents, FLASH_PAGE_SIZE);
+    if ( flash_target_contents[1] < 1 || flash_target_contents[1] > 16 )
         {
             int writeSize = (myDataSize / FLASH_PAGE_SIZE) + 1; // how many flash pages we're gonna need to write
             int sectorCount = ((writeSize * FLASH_PAGE_SIZE) / FLASH_SECTOR_SIZE) + 1; // how many flash sectors we're gonna need to erase
@@ -116,10 +121,10 @@ int main()
     else
         {   
             const uint8_t* flash_target_contents = (const uint8_t *) (XIP_BASE + FLASH_TARGET_OFFSET);
-            myData[1] = printf(flash_target_contents, FLASH_PAGE_SIZE);
-            if (myData[1] >= 1 || myData[1] <= 16)
+            printf(flash_target_contents, FLASH_PAGE_SIZE);
+            if (flash_target_contents[1] >= 1 || flash_target_contents[1] <= 16)
                 {
-                  change_channel = myData[1]; 
+                  change_channel = flash_target_contents[1]; 
                 }
             else
                 { 
