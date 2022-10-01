@@ -13,7 +13,6 @@
 #include "hardware/uart.h"
 #include "hardware/sync.h"
 #include "hardware/flash.h"
-#include "string.h"
 
 
 #define NUM_VOICES 6
@@ -106,9 +105,9 @@ int main()
         myData[i] = change_channel;
     }
 
-    const uint8_t* flash_target_contents = (const uint8_t *) (XIP_BASE + FLASH_TARGET_OFFSET);
-    printf(flash_target_contents, FLASH_PAGE_SIZE);
-    if ( flash_target_contents[1] < 1 || flash_target_contents[1] > 16 )
+    const uint8_t *flash_target_contents = (const uint8_t *) (XIP_BASE + FLASH_TARGET_OFFSET);
+    memcpy(&myData, flash_target_contents + FLASH_PAGE_SIZE, sizeof(myData));
+    if ( myData[1] < 1 || myData[1] > 16 )
         {
             int writeSize = (myDataSize / FLASH_PAGE_SIZE) + 1; // how many flash pages we're gonna need to write
             int sectorCount = ((writeSize * FLASH_PAGE_SIZE) / FLASH_SECTOR_SIZE) + 1; // how many flash sectors we're gonna need to erase
@@ -120,11 +119,10 @@ int main()
         }
     else
         {   
-            const uint8_t* flash_target_contents = (const uint8_t *) (XIP_BASE + FLASH_TARGET_OFFSET);
-            printf(flash_target_contents, FLASH_PAGE_SIZE);
-            if (flash_target_contents[1] >= 1 || flash_target_contents[1] <= 16)
+            memcpy(&myData, flash_target_contents + FLASH_PAGE_SIZE, sizeof(myData));
+            if (myData[1] >= 1 || myData[1] <= 16)
                 {
-                  change_channel = flash_target_contents[1]; 
+                  change_channel = myData[1]; 
                 }
             else
                 { 
